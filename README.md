@@ -1,4 +1,4 @@
-# Bi-Layer Ant Colony Optimization for Multi-Robot Multi-Depot Pickup and Delivery
+# Dual Pheromone Ant Colony Optimization for Multi-Robot Multi-Depot Pickup and Delivery
 
 This repository implements a **multi-robot task allocation and routing framework** using **Ant Colony Optimization (ACO)**, where all travel costs are computed using **A\*** path planning on an occupancy grid map.
 
