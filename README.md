@@ -110,7 +110,7 @@ q = 100.0          # pheromone deposit factor
 At each iteration:
 
 - Multiple ants construct candidate solutions  
-- Pheromone trails are updated based on solution quality  
+- Pheromone trails evaporate, then only the **global-best solution** found so far deposits pheromone on both the assignment and sequencing matrices (`τ ← (1 − ρ)τ + ρ·Q/C*`)  
 - The **best solution (minimum total distance)** is retained  
 
 Over successive iterations, the algorithm converges toward high-quality task allocations and optimized robot routes.
@@ -161,10 +161,21 @@ Contains per-iteration statistics:
 
 ### 2. Visualization Figures
 
-- **figure1_initial_setup.png**  
-  Initial random ant solution (first iteration)
+<p align="center">
+  <img src="images/figure1_initial_setup.png" width="500">
+</p>
 
-- **figure2_aco_optimized.png**  
-  Final optimized ACO solution
+<p align="center">
+  <b>Figure 1:</b> Initial random ant solution (first iteration)
+</p>
+  
+<p align="center">
+  <img src="images/figure2_aco_optimized.png" width="500">
+</p>
+
+<p align="center">
+  <b>Figure 2:</b> Final optimized ACO solution
+</p>
+  
 
 Paths are plotted using **A\*** trajectories between waypoints.

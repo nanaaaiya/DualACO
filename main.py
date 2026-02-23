@@ -387,6 +387,16 @@ def build_waypoints_dict(routes):
         WAYPOINTS[robot_labels[i]] = path
     return WAYPOINTS
 
+def update_pheromones(pher_assign, pher_seq, best_assignment, best_robot_tasks, best_cost, rho, q):
+    pher_assign *= (1.0 - rho)
+    pher_seq *= (1.0 - rho)
+    deposit = rho * q / (best_cost + 1e-9)
+    for task, robot in enumerate(best_assignment):
+        pher_assign[task, robot] += deposit
+    for robot, sequence in best_robot_tasks.items():
+        for a, b in zip(sequence[:-1], sequence[1:]):
+            pher_seq[a, b] += deposit
+
 def run_aco(run_seed, num_ants=30, num_iterations=100, alpha=1.0, beta=2.0, rho=0.1, q=100.0, verbose=False, history_out=None):
     rng = np.random.RandomState(int(run_seed))
 
@@ -397,6 +407,8 @@ def run_aco(run_seed, num_ants=30, num_iterations=100, alpha=1.0, beta=2.0, rho=
     heuristic_assign[heuristic_assign < 1e-10] = 1e-10
 
     best_cost = float('inf')
+    best_assignment = None
+    best_robot_tasks = None
     best_routes = None
     random_ant_routes = None
     random_ant_cost = None
@@ -468,7 +480,9 @@ def run_aco(run_seed, num_ants=30, num_iterations=100, alpha=1.0, beta=2.0, rho=
             solutions.append((assignment.copy(), robot_tasks, total_cost, routes))
             if total_cost < best_cost:
                 best_cost = total_cost
-                best_routes = routes.copy()
+                best_assignment = assignment.copy()
+                best_robot_tasks = {robot: sequence.copy() for robot, sequence in robot_tasks.items()}
+                best_routes = {robot: route.copy() for robot, route in routes.items()}
 
         if solutions:
             iter_best = min(s[2] for s in solutions)
@@ -496,18 +510,8 @@ def run_aco(run_seed, num_ants=30, num_iterations=100, alpha=1.0, beta=2.0, rho=
             random_ant_cost = random_ant_solution[2]  # total_cost
             random_ant_routes = random_ant_solution[3].copy()  # routes
 
-        # pheromone evaporation
-        pher_assign *= (1.0 - rho)
-        pher_seq *= (1.0 - rho)
-        for assignment, robot_tasks_seq, cost, routes in solutions:
-            deposit = q / (cost + 1e-9)
-            for t, r in enumerate(assignment):
-                pher_assign[t, r] += deposit
-            for i in range(n_robots):
-                seq = robot_tasks_seq[i]
-                for k in range(len(seq)-1):
-                    a, b = seq[k], seq[k+1]
-                    pher_seq[a, b] += deposit
+        # pheromone evaporation + global-best deposit
+        update_pheromones(pher_assign, pher_seq, best_assignment, best_robot_tasks, best_cost, rho, q)
 
     waypoints = build_waypoints_dict(best_routes)
     total = best_cost
