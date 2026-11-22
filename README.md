@@ -121,8 +121,9 @@ Over successive iterations, the algorithm converges toward high-quality task all
 ### Step 1: Install the required Python packages:
 
 ```bash
-pip install numpy pillow matplotlib pyyaml
+pip install numpy pillow matplotlib pyyaml pulp scipy
 ```
+`pulp` is needed only for the MILP baseline and `scipy` only for the statistics in `compare.py`.
 
 ### Step 2: Execute:
 
@@ -137,6 +138,22 @@ The script will:
 4. Run **ACO optimization**  
 5. Save convergence data to CSV  
 6. Generate and save visualization figures 
+
+### Step 3 (optional): Compare with the baselines
+
+```bash
+python compare.py --tasks 5 10 20 --runs 5
+```
+For each task size and run, a new task instance is sampled, its A\* costs are computed once, and DualACO and the three baselines in `baselines.py` are run on it:
+
+| Method | Assignment | Sequencing | Settings |
+|---|---|---|---|
+| DualACO | Assignment and sequencing pheromones, global-best update | Dual-pheromone-guided | 30 ants, 100 iterations |
+| Single-ACO | Single pheromone on the assignment cost `d(s_r, p_j) + d(p_j, q_j)`, all-ant update | Greedy nearest-neighbor | 30 ants, 100 iterations |
+| PSO | Random-key PSO over assignment and order (w = 0.7, c1 = c2 = 1.5) | From the particle keys | 30 particles, 100 iterations |
+| MILP | CBC on the assignment cost `d(s_r, p_j) + d(p_j, q_j)` | Greedy nearest-neighbor | CBC solver |
+
+All methods are scored by the same A\*-based total fleet distance. Per-run results are saved to `comparison_results.csv`. The script also prints the mean ± std per method, plus the paired Wilcoxon test and Cohen's d for DualACO vs PSO.
 
 ## Outputs
 
